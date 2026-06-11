@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Car for Repair</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, textarea { width: 100%; padding: 8px; box-sizing: border-box; }
+        button { background-color: #007bff; color: white; padding: 10px 15px; border: none; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        #message { margin-top: 20px; padding: 10px; border-radius: 4px; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+    <h1>Submit Car Repair Request</h1>
+    <form id="repairForm">
+        <div class="form-group">
+            <label for="carName">Car Name:</label>
+            <input type="text" id="carName" name="carName" required>
+        </div>
+        <div class="form-group">
+            <label for="carModel">Car Model:</label>
+            <input type="text" id="carModel" name="carModel" required>
+        </div>
+        <div class="form-group">
+            <label for="problemDescription">Problem Description:</label>
+            <textarea id="problemDescription" name="problemDescription" rows="4" required></textarea>
+        </div>
+        <div class="form-group">
+            <label for="carImages">Upload Images (max 5):</label>
+            <input type="file" id="carImages" name="images" accept="image/*" multiple>
+        </div>
+        <button type="submit">Submit Request</button>
+    </form>
+    <div id="message"></div>
+
+    <script>
+        document.getElementById('repairForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            
+            // Add text fields
+            formData.append('carName', document.getElementById('carName').value);
+            formData.append('carModel', document.getElementById('carModel').value);
+            formData.append('problemDescription', document.getElementById('problemDescription').value);
+            
+            // Add image files
+            const imageInput = document.getElementById('carImages');
+            if (imageInput.files.length > 0) {
+                for (let i = 0; i < imageInput.files.length; i++) {
+                    formData.append('images', imageInput.files[i]);
+                }
+            }
+            
+            // Assuming userId is available from auth context; for demo, we'll use a placeholder
+            // In a real app, you would get the user ID from authentication state
+            const userId = 'PLACEHOLDER_USER_ID'; // Replace with actual user ID from auth
+            formData.append('userId', userId);
+            
+            try {
+                const response = await fetch('/api/repair-requests', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                const messageDiv = document.getElementById('message');
+                
+                if (response.ok) {
+                    messageDiv.className = 'success';
+                    messageDiv.textContent = 'Repair request submitted successfully!';
+                    document.getElementById('repairForm').reset();
+                } else {
+                    messageDiv.className = 'error';
+                    messageDiv.textContent = 'Error: ' + (result.error || 'Unknown error');
+                }
+            } catch (error) {
+                const messageDiv = document.getElementById('message');
+                messageDiv.className = 'error';
+                messageDiv.textContent = 'Network error: ' + error.message;
+            }
+        });
+    </script>
+</body>
+</html>
